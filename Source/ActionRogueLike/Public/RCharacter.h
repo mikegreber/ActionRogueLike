@@ -25,9 +25,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComponent;
-
-	UFUNCTION()
+	
 	void MoveForward(float X);
+
+	void MoveRight(float X);
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
