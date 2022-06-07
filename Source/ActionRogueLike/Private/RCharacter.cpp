@@ -3,10 +3,10 @@
 
 #include "RCharacter.h"
 
+#include "RInteractionComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -22,6 +22,8 @@ ARCharacter::ARCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
+	InteractionComp = CreateDefaultSubobject<URInteractionComponent>("InteractionComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
@@ -32,24 +34,6 @@ void ARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-void ARCharacter::MoveForward(float Value)
-{
-	FRotator ControlRot = GetControlRotation();
-	ControlRot.Pitch = 0;
-	ControlRot.Roll = 0;
-	
-	AddMovementInput(ControlRot.Vector(), Value);
-}
-
-void ARCharacter::MoveRight(float Value)
-{
-	FRotator ControlRot = GetControlRotation();
-	ControlRot.Pitch = 0;
-	ControlRot.Roll = 0;
-	
-	AddMovementInput(FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y), Value);
 }
 
 // Called every frame
@@ -71,5 +55,44 @@ void ARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ARCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ARCharacter::PrimaryInteract);
 }
 
+void ARCharacter::MoveForward(float Value)
+{
+	FRotator ControlRot = GetControlRotation();
+	ControlRot.Pitch = 0;
+	ControlRot.Roll = 0;
+	
+	AddMovementInput(ControlRot.Vector(), Value);
+}
+
+void ARCharacter::MoveRight(float Value)
+{
+	FRotator ControlRot = GetControlRotation();
+	ControlRot.Pitch = 0;
+	ControlRot.Roll = 0;
+	
+	AddMovementInput(FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y), Value);
+}
+
+void ARCharacter::PrimaryAttack()
+{
+	const FTransform SpawnTM = FTransform(GetControlRotation(), GetMesh()->GetSocketLocation("Muzzle_01"));
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+}
+
+void ARCharacter::PrimaryInteract()
+{
+	if (InteractionComp)
+	{
+		InteractionComp->PrimaryInteract();
+	}
+}
