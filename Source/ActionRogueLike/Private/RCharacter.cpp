@@ -3,6 +3,7 @@
 
 #include "RCharacter.h"
 
+#include "RAttributeComponent.h"
 #include "RInteractionComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -23,6 +24,8 @@ ARCharacter::ARCharacter()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
 	InteractionComp = CreateDefaultSubobject<URInteractionComponent>("InteractionComp");
+
+	AttributeComp = CreateDefaultSubobject<URAttributeComponent>("AttributeComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -58,7 +61,9 @@ void ARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ARCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ARCharacter::SecondaryAttack);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ARCharacter::PrimaryInteract);
+	PlayerInputComponent->BindAction("TeleportAbility", IE_Pressed, this, &ARCharacter::TeleportAbility);
 }
 
 void ARCharacter::MoveForward(float Value)
@@ -79,15 +84,66 @@ void ARCharacter::MoveRight(float Value)
 	AddMovementInput(FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y), Value);
 }
 
-void ARCharacter::PrimaryAttack()
+void ARCharacter::SpawnProjectile(UClass* ProjectileClass)
 {
-	const FTransform SpawnTM = FTransform(GetControlRotation(), GetMesh()->GetSocketLocation("Muzzle_01"));
+	FVector CameraStart = CameraComponent->GetComponentLocation();
+	FVector End = CameraStart + CameraComponent->GetForwardVector() * 5'000;
+
+	if (FHitResult Hit; GetWorld()->LineTraceSingleByChannel(Hit, CameraStart, End, ECC_Visibility))
+	{
+		End = Hit.Location;
+	}
 	
+	FVector ProjectileStart = GetMesh()->GetSocketLocation("Muzzle_01");
+	FRotator Rotation = (End - ProjectileStart).Rotation();
+	FTransform SpawnTF = FTransform(Rotation,ProjectileStart);
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = this;
 	
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTF, SpawnParams);
 }
+
+void ARCharacter::PrimaryAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+}
+
+void ARCharacter::PrimaryAttack_TimeElapsed()
+{
+	SpawnProjectile(PrimaryProjectileClass);
+}
+
+void ARCharacter::SecondaryAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::SecondaryAttack_TimeElapsed, 0.2f);
+}
+
+void ARCharacter::SecondaryAttack_TimeElapsed()
+{
+	SpawnProjectile(SecondaryProjectileClass);
+}
+
+void ARCharacter::TeleportAbility()
+{
+	PlayAnimMontage(AttackAnim);
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::TeleportAbility_TimeElapsed, 0.2f);
+}
+
+void ARCharacter::TeleportAbility_TimeElapsed()
+{
+	SpawnProjectile(TeleportProjectileClass);
+}
+
 
 void ARCharacter::PrimaryInteract()
 {

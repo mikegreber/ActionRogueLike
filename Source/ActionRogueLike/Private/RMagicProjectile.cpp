@@ -3,41 +3,37 @@
 
 #include "RMagicProjectile.h"
 
-#include "Components/SphereComponent.h"
+#include "RAttributeComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ARMagicProjectile::ARMagicProjectile()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
-	SphereComp->SetCollisionProfileName("Projectile");
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARMagicProjectile::OnHit);
-	RootComponent = SphereComp;
-	
-	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
-	EffectComp->SetupAttachment(RootComponent);
-	
-	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
 	MovementComp->InitialSpeed = 1000.0f;
-	MovementComp->bRotationFollowsVelocity = true;
-	MovementComp->bInitialVelocityInLocalSpace = true;
-
-}
-
-void ARMagicProjectile::OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor,
-	UPrimitiveComponent* PrimitiveComponent1, int I, bool bArg, const FHitResult& HitResult)
-{
-	
 }
 
 // Called when the game starts or when spawned
 void ARMagicProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void ARMagicProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, GetActorLocation(), GetActorRotation());
+		if (URAttributeComponent* AttributeComp = Cast<URAttributeComponent>(OtherActor->GetComponentByClass(URAttributeComponent::StaticClass())))
+		{
+			AttributeComp->ApplyHealthChange(-20);
+		}
+		Destroy();
+	}
 	
 }
 

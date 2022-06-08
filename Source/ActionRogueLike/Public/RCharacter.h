@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "RCharacter.generated.h"
 
+class URAttributeComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class URInteractionComponent;
@@ -16,9 +17,20 @@ class ACTIONROGUELIKE_API ARCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> ProjectileClass;
+	UPROPERTY(EditAnywhere, Category="Attack")
+	UAnimMontage* AttackAnim;
+
+	UPROPERTY(EditAnywhere, Category="Attack")
+	TSubclassOf<AActor> PrimaryProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category="Attack")
+	TSubclassOf<AActor> SecondaryProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TSubclassOf<AActor> TeleportProjectileClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	URAttributeComponent* AttributeComp;
 	
 public:
 	// Sets default values for this character's properties
@@ -39,7 +51,19 @@ protected:
 
 	void MoveRight(float X);
 
+	void SpawnProjectile(UClass* ProjectileClass);
+	
 	void PrimaryAttack();
+
+	void PrimaryAttack_TimeElapsed();
+
+	void SecondaryAttack();
+
+	void SecondaryAttack_TimeElapsed();
+
+	void TeleportAbility();
+
+	void TeleportAbility_TimeElapsed();
 
 	void PrimaryInteract();
 	

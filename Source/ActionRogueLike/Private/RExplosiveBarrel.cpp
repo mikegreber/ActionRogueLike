@@ -18,13 +18,12 @@ ARExplosiveBarrel::ARExplosiveBarrel()
 	ForceComp->ForceStrength = 1000;
 	ForceComp->SetupAttachment(RootComponent);
 
-	Mesh->OnComponentBeginOverlap.AddDynamic(this, &ARExplosiveBarrel::OnHit);
+	Mesh->OnComponentHit.AddDynamic(this, &ARExplosiveBarrel::OnHit);
 }
 
 void ARExplosiveBarrel::OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor,
-	UPrimitiveComponent* PrimitiveComponent1, int I, bool bArg, const FHitResult& HitResult)
+	UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HIT!!"))
 	ForceComp->FireImpulse();
 }
 

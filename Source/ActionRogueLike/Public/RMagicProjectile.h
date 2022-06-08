@@ -3,16 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "RProjectile.h"
 #include "RMagicProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
 
 UCLASS()
-class ACTIONROGUELIKE_API ARMagicProjectile : public AActor
+class ACTIONROGUELIKE_API ARMagicProjectile : public ARProjectile
 {
 	GENERATED_BODY()
+
+protected:
+	
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* HitEffect;
 	
 public:
 	
@@ -20,26 +25,14 @@ public:
 	ARMagicProjectile();
 
 protected:
-
-	UPROPERTY(VisibleAnywhere)
-	USphereComponent* SphereComp;
-
-	UPROPERTY(VisibleAnywhere)
-	UProjectileMovementComponent* MovementComp;
-
-	UPROPERTY(VisibleAnywhere)
-	UParticleSystemComponent* EffectComp;
-
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, int I, bool bArg, const FHitResult& HitResult);
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
+	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 };
