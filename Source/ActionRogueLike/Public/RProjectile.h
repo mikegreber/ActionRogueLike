@@ -9,7 +9,7 @@
 class UProjectileMovementComponent;
 class USphereComponent;
 
-UCLASS()
+UCLASS(Abstract)
 class ACTIONROGUELIKE_API ARProjectile : public AActor
 {
 	GENERATED_BODY()
@@ -24,6 +24,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent* EffectComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UAudioComponent* AudioComp;
 	
 public:	
 	// Sets default values for this actor's properties

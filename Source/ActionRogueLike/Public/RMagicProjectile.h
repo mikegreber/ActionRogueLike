@@ -18,7 +18,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* HitEffect;
-	
+
+	UPROPERTY(EditAnywhere)
+	float DamageAmount;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* ImpactSound;
+
 public:
 	
 	// Sets default values for this actor's properties

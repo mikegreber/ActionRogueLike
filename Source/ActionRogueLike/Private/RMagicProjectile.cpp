@@ -4,6 +4,7 @@
 #include "RMagicProjectile.h"
 
 #include "RAttributeComponent.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -15,6 +16,8 @@ ARMagicProjectile::ARMagicProjectile()
 	PrimaryActorTick.bCanEverTick = false;
 
 	MovementComp->InitialSpeed = 1000.0f;
+
+	DamageAmount = 30;
 }
 
 // Called when the game starts or when spawned
@@ -25,13 +28,17 @@ void ARMagicProjectile::BeginPlay()
 
 void ARMagicProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor)
+	if (OtherActor && OtherActor != GetInstigator())
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
+		AudioComp->Deactivate();
+		
 		if (URAttributeComponent* AttributeComp = Cast<URAttributeComponent>(OtherActor->GetComponentByClass(URAttributeComponent::StaticClass())))
 		{
-			AttributeComp->ApplyHealthChange(-20);
+			AttributeComp->ApplyHealthChange(-DamageAmount);
 		}
+		
 		Destroy();
 	}
 	

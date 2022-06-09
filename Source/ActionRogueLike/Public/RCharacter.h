@@ -17,6 +17,16 @@ class ACTIONROGUELIKE_API ARCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
+	
+	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* CameraComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	URInteractionComponent* InteractionComp;
+	
 	UPROPERTY(EditAnywhere, Category="Attack")
 	UAnimMontage* AttackAnim;
 
@@ -37,15 +47,10 @@ public:
 	ARCharacter();
 
 protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* SpringArmComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* CameraComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	URInteractionComponent* InteractionComp;
+	virtual void PostInitializeComponents() override;
 	
 	void MoveForward(float X);
 
@@ -66,9 +71,9 @@ protected:
 	void TeleportAbility_TimeElapsed();
 
 	void PrimaryInteract();
-	
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, URAttributeComponent* OwningComp, float NewHealth, float Delta);
 
 public:	
 	// Called every frame

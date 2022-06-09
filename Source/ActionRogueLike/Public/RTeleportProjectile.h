@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float TeleportTime;
 
+	UPROPERTY(EditAnywhere)
+	float TeleportDelay;
+
 public:
 	ARTeleportProjectile();
 
@@ -41,5 +44,5 @@ protected:
 
 private:
 	
-	FTimerHandle TimerHandle;
+	FTimerHandle TimerHandle_Teleport;
 };

@@ -7,13 +7,21 @@
 URAttributeComponent::URAttributeComponent()
 {
 	Health = 100;
+	MaxHealth = 100;
+}
+
+bool URAttributeComponent::IsAlive() const
+{
+	return Health > 0;
 }
 
 bool URAttributeComponent::ApplyHealthChange(float Delta)
 {
-	Health += Delta;
-
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
+	const float OldHealth = Health;
+	
+	Health = FMath::Clamp(Health + Delta, 0.f, MaxHealth);
+	
+	OnHealthChanged.Broadcast(nullptr, this, Health, Health - OldHealth);
 	
 	return true;
 }

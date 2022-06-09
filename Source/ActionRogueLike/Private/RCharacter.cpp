@@ -32,12 +32,21 @@ ARCharacter::ARCharacter()
 	bUseControllerRotationYaw = false;
 }
 
+void ARCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ARCharacter::OnHealthChanged);
+}
+
 // Called when the game starts or when spawned
 void ARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
+
+
 
 // Called every frame
 void ARCharacter::Tick(float DeltaTime)
@@ -86,17 +95,30 @@ void ARCharacter::MoveRight(float Value)
 
 void ARCharacter::SpawnProjectile(UClass* ProjectileClass)
 {
-	FVector CameraStart = CameraComponent->GetComponentLocation();
-	FVector End = CameraStart + CameraComponent->GetForwardVector() * 5'000;
+	// Line trace to find target
+	FVector TraceStart = CameraComponent->GetComponentLocation();
+	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 5'000;
 
-	if (FHitResult Hit; GetWorld()->LineTraceSingleByChannel(Hit, CameraStart, End, ECC_Visibility))
-	{
-		End = Hit.Location;
-	}
+	FCollisionShape Shape;
+	Shape.SetSphere(20.f);
 	
-	FVector ProjectileStart = GetMesh()->GetSocketLocation("Muzzle_01");
-	FRotator Rotation = (End - ProjectileStart).Rotation();
-	FTransform SpawnTF = FTransform(Rotation,ProjectileStart);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+	
+	if (FHitResult Hit; GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
+	{
+		TraceEnd = Hit.Location;
+	}
+
+	// Spawn projectile
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	FRotator Rotation = (TraceEnd - HandLocation).Rotation();
+	FTransform SpawnTF = FTransform(Rotation,HandLocation);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -151,4 +173,21 @@ void ARCharacter::PrimaryInteract()
 	{
 		InteractionComp->PrimaryInteract();
 	}
+}
+
+void ARCharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponent* OwningComp, float NewHealth,
+	float Delta)
+{
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->GetTimeSeconds());
+
+		if (NewHealth <= 0.0f)
+		{
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			DisableInput(PC);
+		}
+	}
+	
+	
 }
