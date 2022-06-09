@@ -3,58 +3,40 @@
 
 #include "RInteractionComponent.h"
 
+#include "RCharacter.h"
 #include "RGameplayInterface.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values for this component's properties
 URInteractionComponent::URInteractionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
-}
-
-
-// Called when the game starts
-void URInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-
-// Called every frame
-void URInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
 
 void URInteractionComponent::PrimaryInteract()
 {
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-
 	AActor* MyOwner = GetOwner();
-	
-	FVector EyeLocation;
-	FRotator EyeRotation;
-	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-	
-	FVector End = EyeLocation + EyeRotation.Vector() * 1000;
-	
-	// FHitResult Hit;
-	// bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);
 
-	float Radius = 30;
+	UCameraComponent* CameraComponent = Cast<ARCharacter>(MyOwner)->GetCameraComponent();
 	
+	// Line trace to find where camera is looking
+	FVector TraceStart = CameraComponent->GetComponentLocation();
+	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 400;
+
+	float Radius = 30.f;
+	FCollisionShape Shape;
+	Shape.SetSphere(Radius);
+	
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(GetOwner());
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
 	TArray<FHitResult> Hits;
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity, ObjectQueryParams, FCollisionShape::MakeSphere(Radius));
+	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params);
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 
 	for (FHitResult& Hit : Hits)
@@ -73,5 +55,5 @@ void URInteractionComponent::PrimaryInteract()
 		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2);
 	}
 	
-	DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2, 0, 2);
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, LineColor, false, 2, 0, 2);
 }

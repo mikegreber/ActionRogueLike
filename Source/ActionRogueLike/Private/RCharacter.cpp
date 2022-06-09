@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -30,6 +31,9 @@ ARCharacter::ARCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
+
+	TimeToHitParamName = "TimeToHit";
+	HandSocketName = "Muzzle_01";
 }
 
 void ARCharacter::PostInitializeComponents()
@@ -75,6 +79,8 @@ void ARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("TeleportAbility", IE_Pressed, this, &ARCharacter::TeleportAbility);
 }
 
+
+
 void ARCharacter::MoveForward(float Value)
 {
 	FRotator ControlRot = GetControlRotation();
@@ -116,7 +122,7 @@ void ARCharacter::SpawnProjectile(UClass* ProjectileClass)
 	}
 
 	// Spawn projectile
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
 	FRotator Rotation = (TraceEnd - HandLocation).Rotation();
 	FTransform SpawnTF = FTransform(Rotation,HandLocation);
 
@@ -129,7 +135,7 @@ void ARCharacter::SpawnProjectile(UClass* ProjectileClass)
 
 void ARCharacter::PrimaryAttack()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::PrimaryAttack_TimeElapsed, 0.2f);
@@ -142,7 +148,7 @@ void ARCharacter::PrimaryAttack_TimeElapsed()
 
 void ARCharacter::SecondaryAttack()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::SecondaryAttack_TimeElapsed, 0.2f);
@@ -155,7 +161,7 @@ void ARCharacter::SecondaryAttack_TimeElapsed()
 
 void ARCharacter::TeleportAbility()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::TeleportAbility_TimeElapsed, 0.2f);
@@ -164,6 +170,13 @@ void ARCharacter::TeleportAbility()
 void ARCharacter::TeleportAbility_TimeElapsed()
 {
 	SpawnProjectile(TeleportProjectileClass);
+}
+
+void ARCharacter::StartAttackEffects()
+{
+	PlayAnimMontage(AttackAnim);
+
+	UGameplayStatics::SpawnEmitterAttached(CastingEffect, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
 }
 
 
@@ -180,7 +193,7 @@ void ARCharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponent*
 {
 	if (Delta < 0.0f)
 	{
-		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->GetTimeSeconds());
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->GetTimeSeconds());
 
 		if (NewHealth <= 0.0f)
 		{

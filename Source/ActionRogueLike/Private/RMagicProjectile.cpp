@@ -15,7 +15,7 @@ ARMagicProjectile::ARMagicProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	MovementComp->InitialSpeed = 1000.0f;
+	MovementComp->InitialSpeed = 2000.0f;
 
 	DamageAmount = 30;
 }
@@ -36,8 +36,10 @@ void ARMagicProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 		
 		if (URAttributeComponent* AttributeComp = Cast<URAttributeComponent>(OtherActor->GetComponentByClass(URAttributeComponent::StaticClass())))
 		{
-			AttributeComp->ApplyHealthChange(-DamageAmount);
+			AttributeComp->ApplyHealthChange(GetInstigator(), -DamageAmount);
 		}
+
+		UGameplayStatics::PlayWorldCameraShake(this, ImpactCameraShake, GetActorLocation(), 50, 1000);
 		
 		Destroy();
 	}

@@ -36,12 +36,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Attack")
 	TSubclassOf<AActor> SecondaryProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category="Attack")
+	UParticleSystem* CastingEffect;
+	
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TSubclassOf<AActor> TeleportProjectileClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	URAttributeComponent* AttributeComp;
-	
+
+	UPROPERTY(VisibleAnywhere, Category="Effects")
+	FName HandSocketName;
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects");
+	FName TimeToHitParamName;
+
+
 public:
 	// Sets default values for this character's properties
 	ARCharacter();
@@ -81,5 +91,10 @@ public:
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
+private:
+
+	void StartAttackEffects();
 };

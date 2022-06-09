@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	USoundBase* ImpactSound;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShakeBase> ImpactCameraShake;
+
 public:
 	
 	// Sets default values for this actor's properties

@@ -17,7 +17,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float TargetPitch;
 	
-	void Interact_Implementation(APawn* Instigator) override;
+	virtual void Interact_Implementation(APawn* Instigator) override;
 	
 protected:
 	
@@ -30,14 +30,5 @@ protected:
 public:	
 	// Sets default values for this actor's properties
 	ARItemChest();
-
-protected:
-	
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };
