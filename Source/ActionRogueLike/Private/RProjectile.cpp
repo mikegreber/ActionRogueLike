@@ -6,30 +6,34 @@
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ARProjectile::ARProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	SphereComp->SetCollisionProfileName("Projectile");
-	
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARProjectile::OnBeginOverlap);
+	SphereComp->SetNotifyRigidBodyCollision(true);
+	SphereComp->OnComponentHit.AddDynamic(this, &ARProjectile::OnHit);
 	RootComponent = SphereComp;
 	
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(RootComponent);
 	
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
-	MovementComp->InitialSpeed = 1000.0f;
+	MovementComp->InitialSpeed = 8000.0f;
+	MovementComp->ProjectileGravityScale = 0.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
 
 	AudioComp = CreateDefaultSubobject<UAudioComponent>("AudioComp");
 	AudioComp->SetupAttachment(RootComponent);
+
+	ImpactShakeInnerRadius = 0.0f;
+	ImpactShakeOuterRadius = 1500.f;
 }
 
 // Called when the game starts or when spawned
@@ -40,13 +44,23 @@ void ARProjectile::BeginPlay()
 	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 
-void ARProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ARProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
+	FVector NormalImpulse, const FHitResult& Hit)
 {
+	Explode();
 }
 
-// Called every frame
-void ARProjectile::Tick(float DeltaTime)
+void ARProjectile::Explode_Implementation()
 {
-	Super::Tick(DeltaTime);
+	if (ensure(IsValid(this)))
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+
+		UGameplayStatics::PlayWorldCameraShake(this, ImpactShake, GetActorLocation(), 0.0f, ImpactShakeOuterRadius);
+
+		Destroy();
+	}
 }
 

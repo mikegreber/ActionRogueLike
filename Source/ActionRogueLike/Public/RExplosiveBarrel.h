@@ -29,9 +29,6 @@ protected:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult);
 	
-	// UFUNCTION()
-	// void OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, UE::Math::TVector<double> Vector, const FHitResult& HitResult);
-	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	

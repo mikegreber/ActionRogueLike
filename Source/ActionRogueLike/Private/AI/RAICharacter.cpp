@@ -5,8 +5,13 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "Abilities/RAbilityComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/PawnSensingComponent.h"
+#include "UI/RWorldUserWidget.h"
 
 // Sets default values
 ARAICharacter::ARAICharacter()
@@ -14,8 +19,13 @@ ARAICharacter::ARAICharacter()
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
 
 	AttributeComp = CreateDefaultSubobject<URAttributeComponent>("AttributeComp");
+	
+	AbilityComp = CreateDefaultSubobject<URAbilityComponent>("AbilityComp");
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	TimeToHitParamName = "TimeToHit";
 }
@@ -34,8 +44,6 @@ void ARAICharacter::SetTargetActor(AActor* NewTarget)
 	if (AIController)
 	{
 		AIController->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
-
-		// DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
 	}
 }
 
@@ -53,7 +61,17 @@ void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponen
 			SetTargetActor(InstigatorActor);
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("HitFlash"));
+		if (ActiveHealthBar == nullptr)
+		{
+			ActiveHealthBar = CreateWidget<URWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+            if (ActiveHealthBar)
+            {
+            	ActiveHealthBar->AttachedActor = this;
+            	ActiveHealthBar->AddToViewport();
+            }
+		}
+		
+		
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->GetTimeSeconds());
 
 		if (NewHealth <= 0.0f)
@@ -68,6 +86,9 @@ void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponen
 			// rag doll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll");
+			
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCharacterMovement()->DisableMovement();
 
 			SetLifeSpan(10.0f);
 		}

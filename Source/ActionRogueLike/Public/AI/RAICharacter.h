@@ -6,8 +6,10 @@
 #include "RAttributeComponent.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
 #include "GameFramework/Character.h"
+#include "UI/RWorldUserWidget.h"
 #include "RAICharacter.generated.h"
 
+class URAbilityComponent;
 class UPawnSensingComponent;
 
 UCLASS()
@@ -17,11 +19,20 @@ class ACTIONROGUELIKE_API ARAICharacter : public ACharacter
 
 protected:
 
+	UPROPERTY()
+	URWorldUserWidget* ActiveHealthBar;
+	
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UPawnSensingComponent* PawnSensingComp;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URAttributeComponent* AttributeComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	URAbilityComponent* AbilityComp;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	FName TargetActorKey;

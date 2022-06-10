@@ -4,34 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "RGameplayInterface.h"
+#include "Actors/RPowerupBase.h"
 #include "GameFramework/Actor.h"
 #include "RHealthPotion.generated.h"
 
 UCLASS()
-class ACTIONROGUELIKE_API ARHealthPotion : public AActor, public IRGameplayInterface
+class ACTIONROGUELIKE_API ARHealthPotion : public ARPowerupBase
 {
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* Mesh;
-
-	UPROPERTY(EditAnywhere)
+	
+	UPROPERTY(EditAnywhere, Category = "Potion")
 	float HealAmount;
 
-	UPROPERTY(EditAnywhere)
-	float CooldownTime;
-
+	UPROPERTY(EditAnywhere, Category = "Potion")
+	int32 CreditCost;
+	
 public:	
 	// Sets default values for this actor's properties
 	ARHealthPotion();
 
-protected:
-
-	void Enable();
-
-	void Disable();
-
-public:	
 	virtual void Interact_Implementation(APawn* MyInstigator) override;
 };

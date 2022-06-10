@@ -16,19 +16,35 @@ class ACTIONROGUELIKE_API ARProjectile : public AActor
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UProjectileMovementComponent* MovementComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UParticleSystemComponent* EffectComp;
-
-	UPROPERTY(VisibleAnywhere)
-	UAudioComponent* AudioComp;
 	
-public:	
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UParticleSystemComponent* EffectComp;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UAudioComponent* AudioComp;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	USoundBase* ImpactSound;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TSubclassOf<UCameraShakeBase> ImpactShake;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	float ImpactShakeInnerRadius;
+	
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	float ImpactShakeOuterRadius;
+
+public:
+	
 	// Sets default values for this actor's properties
 	ARProjectile();
 
@@ -37,10 +53,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Projectile")
+	void Explode();
+	
 };

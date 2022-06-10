@@ -11,21 +11,13 @@
 // Sets default values
 ARBlackholeProjectile::ARBlackholeProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	// SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
-	// SphereComp->SetCollisionProfileName("Projectile");
-	// SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARBlackholeProjectile::OnBeginOverlap);
-	// RootComponent = SphereComp;
-	//
-	// EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
-	// EffectComp->SetupAttachment(RootComponent);
-	//
-	// MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
+	SphereComp->SetGenerateOverlapEvents(true);
+	SphereComp->SetNotifyRigidBodyCollision(false);
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARBlackholeProjectile::OnSphereComponentBeginOverlap);
+	
 	MovementComp->InitialSpeed = 50.0f;
-	// MovementComp->bRotationFollowsVelocity = true;
-	// MovementComp->bInitialVelocityInLocalSpace = true;
 
 	ForceComp = CreateDefaultSubobject<URadialForceComponent>("ForceComp");
 	ForceComp->ForceStrength = -10000;
@@ -34,18 +26,12 @@ ARBlackholeProjectile::ARBlackholeProjectile()
 	InitialLifeSpan = 5;
 }
 
-
-void ARBlackholeProjectile::OnBeginOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* Actor,
-	UPrimitiveComponent* PrimitiveComponent1, int I, bool bArg, const FHitResult& HitResult)
+void ARBlackholeProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Actor->Destroy();
-}
-
-// Called when the game starts or when spawned
-void ARBlackholeProjectile::BeginPlay()
-{
-	Super::BeginPlay();
+	if (OtherActor)
+	{
+		OtherActor->Destroy();
+	}
 	
-	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 

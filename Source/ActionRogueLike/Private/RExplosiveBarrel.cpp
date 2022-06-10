@@ -18,7 +18,9 @@ ARExplosiveBarrel::ARExplosiveBarrel()
 	ForceComp->ForceStrength = 1000;
 	ForceComp->SetupAttachment(RootComponent);
 
+	Mesh->SetNotifyRigidBodyCollision(true);
 	Mesh->OnComponentHit.AddDynamic(this, &ARExplosiveBarrel::OnHit);
+	
 }
 
 void ARExplosiveBarrel::OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor,

@@ -16,15 +16,6 @@ class ACTIONROGUELIKE_API ARBlackholeProjectile : public ARProjectile
 	GENERATED_BODY()
 
 protected:
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	// USphereComponent* SphereComp;
-	//
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	// UProjectileMovementComponent* MovementComp;
-	//
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	// UParticleSystemComponent* EffectComp;
-
 	UPROPERTY(VisibleAnywhere)
 	URadialForceComponent* ForceComp;
 	
@@ -34,9 +25,7 @@ public:
 	ARBlackholeProjectile();
 
 protected:
-	
-	virtual void OnBeginOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, int I, bool bArg, const FHitResult& HitResult) override;
-	
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

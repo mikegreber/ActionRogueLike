@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RGameModeBase.h"
+#include "AI/RBTService_CheckLowHealth.h"
 #include "Components/ActorComponent.h"
 #include "RAttributeComponent.generated.h"
 
@@ -38,9 +40,15 @@ protected:
 	
 public:
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="Attributes")
 	bool IsAlive() const;
 	
 	UFUNCTION(BlueprintCallable, Category="Attributes")
 	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
+
+	UFUNCTION(BlueprintCallable, Category="Attributes")
+	bool Kill(AActor* InstigatorActor);
+
+	UFUNCTION(BlueprintCallable, Category="Attributes")
+	float GetHealth() const { return Health; };
 };

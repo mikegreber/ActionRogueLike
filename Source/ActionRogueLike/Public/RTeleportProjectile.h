@@ -29,6 +29,7 @@ protected:
 	float TeleportDelay;
 
 public:
+	
 	ARTeleportProjectile();
 
 protected:
@@ -36,11 +37,11 @@ protected:
 	void Teleport();
 
 	void Teleport_TimeElapsed();
-	
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult);
+
+	virtual void OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult) override;
 	
 	virtual void BeginPlay() override;
+
 
 private:
 	

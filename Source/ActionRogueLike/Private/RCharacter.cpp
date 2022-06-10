@@ -5,6 +5,7 @@
 
 #include "RAttributeComponent.h"
 #include "RInteractionComponent.h"
+#include "Abilities/RAbilityComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -28,12 +29,13 @@ ARCharacter::ARCharacter()
 
 	AttributeComp = CreateDefaultSubobject<URAttributeComponent>("AttributeComp");
 
+	AbilityComp = CreateDefaultSubobject<URAbilityComponent>("AbilityComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
 
 	TimeToHitParamName = "TimeToHit";
-	HandSocketName = "Muzzle_01";
 }
 
 void ARCharacter::PostInitializeComponents()
@@ -41,6 +43,11 @@ void ARCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	AttributeComp->OnHealthChanged.AddDynamic(this, &ARCharacter::OnHealthChanged);
+}
+
+FVector ARCharacter::GetPawnViewLocation() const
+{
+	return CameraComponent->GetComponentLocation();
 }
 
 // Called when the game starts or when spawned
@@ -73,10 +80,14 @@ void ARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ARCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ARCharacter::SprintStop);
+	
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ARCharacter::PrimaryAttack);
 	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ARCharacter::SecondaryAttack);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ARCharacter::PrimaryInteract);
-	PlayerInputComponent->BindAction("TeleportAbility", IE_Pressed, this, &ARCharacter::TeleportAbility);
+	PlayerInputComponent->BindAction("TeleportAbility", IE_Pressed, this, &ARCharacter::DashAbility);
+	
 }
 
 
@@ -99,86 +110,30 @@ void ARCharacter::MoveRight(float Value)
 	AddMovementInput(FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y), Value);
 }
 
-void ARCharacter::SpawnProjectile(UClass* ProjectileClass)
+void ARCharacter::SprintStart()
 {
-	// Line trace to find target
-	FVector TraceStart = CameraComponent->GetComponentLocation();
-	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 5'000;
+	AbilityComp->StartAbilityByName(this, "Sprint");
+}
 
-	FCollisionShape Shape;
-	Shape.SetSphere(20.f);
-	
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	FCollisionObjectQueryParams ObjParams;
-	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
-	
-	if (FHitResult Hit; GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
-	{
-		TraceEnd = Hit.Location;
-	}
-
-	// Spawn projectile
-	FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
-	FRotator Rotation = (TraceEnd - HandLocation).Rotation();
-	FTransform SpawnTF = FTransform(Rotation,HandLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-	
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTF, SpawnParams);
+void ARCharacter::SprintStop()
+{
+	AbilityComp->StopAbilityByName(this, "Sprint");
 }
 
 void ARCharacter::PrimaryAttack()
 {
-	StartAttackEffects();
-
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::PrimaryAttack_TimeElapsed, 0.2f);
-}
-
-void ARCharacter::PrimaryAttack_TimeElapsed()
-{
-	SpawnProjectile(PrimaryProjectileClass);
+	AbilityComp->StartAbilityByName(this, "PrimaryAttack");
 }
 
 void ARCharacter::SecondaryAttack()
 {
-	StartAttackEffects();
-
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::SecondaryAttack_TimeElapsed, 0.2f);
+	AbilityComp->StartAbilityByName(this, "Blackhole");
 }
 
-void ARCharacter::SecondaryAttack_TimeElapsed()
+void ARCharacter::DashAbility()
 {
-	SpawnProjectile(SecondaryProjectileClass);
+	AbilityComp->StartAbilityByName(this, "Dash");
 }
-
-void ARCharacter::TeleportAbility()
-{
-	StartAttackEffects();
-
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARCharacter::TeleportAbility_TimeElapsed, 0.2f);
-}
-
-void ARCharacter::TeleportAbility_TimeElapsed()
-{
-	SpawnProjectile(TeleportProjectileClass);
-}
-
-void ARCharacter::StartAttackEffects()
-{
-	PlayAnimMontage(AttackAnim);
-
-	UGameplayStatics::SpawnEmitterAttached(CastingEffect, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
-}
-
 
 void ARCharacter::PrimaryInteract()
 {
@@ -201,6 +156,10 @@ void ARCharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponent*
 			DisableInput(PC);
 		}
 	}
-	
-	
+}
+
+
+void ARCharacter::HealSelf(float Amount)
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
 }

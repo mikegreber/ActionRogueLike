@@ -4,42 +4,27 @@
 #include "RHealthPotion.h"
 
 #include "RAttributeComponent.h"
+#include "RPlayerState.h"
 
 // Sets default values
 ARHealthPotion::ARHealthPotion()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
-
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	RootComponent = Mesh;
-
-	CooldownTime = 10.0f;
+	CreditCost = 10;
 	HealAmount = 50.0f;
 }
 
-void ARHealthPotion::Enable()
-{
-	RootComponent->SetVisibility(true, true);
-	SetActorEnableCollision(true);
-}
-
-void ARHealthPotion::Disable()
-{
-	RootComponent->SetVisibility(false, true);
-	SetActorEnableCollision(false);
-	
-	FTimerHandle TimerHandle_Activate;
-	GetWorldTimerManager().SetTimer(TimerHandle_Activate, this, &ARHealthPotion::Enable, CooldownTime);
-}
 
 void ARHealthPotion::Interact_Implementation(APawn* MyInstigator)
 {
 	if (URAttributeComponent* AttributeComp = Cast<URAttributeComponent>(MyInstigator->GetComponentByClass(URAttributeComponent::StaticClass())))
 	{
-		if (AttributeComp->ApplyHealthChange(this, HealAmount))
+		if (ARPlayerState* PS = MyInstigator->GetPlayerState<ARPlayerState>())
 		{
-			Disable();
+			if (PS->GetCredits() >= CreditCost && AttributeComp->ApplyHealthChange(this, HealAmount))
+			{
+				PS->RemoveCredits(CreditCost);
+				Disable();
+			}
 		}
 	}
 }

@@ -4,7 +4,10 @@
 #include "RMagicProjectile.h"
 
 #include "RAttributeComponent.h"
+#include "RGameplayFunctionLibrary.h"
+#include "Abilities/RAbilityComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -12,44 +15,42 @@
 // Sets default values
 ARMagicProjectile::ARMagicProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+ 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARMagicProjectile::OnActorOverlap);
+	SphereComp->SetGenerateOverlapEvents(true);
+	SphereComp->SetNotifyRigidBodyCollision(false);
+	
+	MovementComp->InitialSpeed = 8000.0f;
 
-	MovementComp->InitialSpeed = 2000.0f;
+	DamageAmount = 30.0f;
 
-	DamageAmount = 30;
-}
-
-// Called when the game starts or when spawned
-void ARMagicProjectile::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void ARMagicProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor != GetInstigator())
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, GetActorLocation(), GetActorRotation());
-		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-		AudioComp->Deactivate();
-		
-		if (URAttributeComponent* AttributeComp = Cast<URAttributeComponent>(OtherActor->GetComponentByClass(URAttributeComponent::StaticClass())))
-		{
-			AttributeComp->ApplyHealthChange(GetInstigator(), -DamageAmount);
-		}
-
-		UGameplayStatics::PlayWorldCameraShake(this, ImpactCameraShake, GetActorLocation(), 50, 1000);
-		
-		Destroy();
-	}
 	
 }
 
-// Called every frame
-void ARMagicProjectile::Tick(float DeltaTime)
+void ARMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::Tick(DeltaTime);
-
+	if (OtherActor && OtherActor != GetInstigator())
+	{
+		// parry
+		URAbilityComponent* AbilityComp = URAbilityComponent::GetAbilityComponent(OtherActor);
+		if (AbilityComp && AbilityComp->ActiveGameplayTags.HasTag(ParryTag))
+		{
+			SphereComp->ClearMoveIgnoreActors();
+			SetInstigator(Cast<APawn>(OtherActor));
+			
+			MovementComp->Velocity = -MovementComp->Velocity;
+			return;
+		}
+		
+		if (URGameplayFunctionLibrary::ApplyDamageDirectional(GetInstigator(), OtherActor, DamageAmount, SweepResult))
+		{
+			if (AbilityComp)
+			{
+				AbilityComp->AddAbility(GetInstigator(), BurningEffectClass);
+			}
+		}
+		Explode();
+	}
 }
+
 

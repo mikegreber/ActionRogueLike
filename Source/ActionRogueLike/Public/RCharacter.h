@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "RCharacter.generated.h"
 
+class URAbilityComponent;
 class URAttributeComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -18,39 +19,23 @@ class ACTIONROGUELIKE_API ARCharacter : public ACharacter
 
 protected:
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCameraComponent* CameraComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URInteractionComponent* InteractionComp;
-	
-	UPROPERTY(EditAnywhere, Category="Attack")
-	UAnimMontage* AttackAnim;
 
-	UPROPERTY(EditAnywhere, Category="Attack")
-	TSubclassOf<AActor> PrimaryProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category="Attack")
-	TSubclassOf<AActor> SecondaryProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category="Attack")
-	UParticleSystem* CastingEffect;
-	
-	UPROPERTY(EditAnywhere, Category="Abilities")
-	TSubclassOf<AActor> TeleportProjectileClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	URAbilityComponent* AbilityComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	URAttributeComponent* AttributeComp;
-
-	UPROPERTY(VisibleAnywhere, Category="Effects")
-	FName HandSocketName;
-
+	
 	UPROPERTY(VisibleAnywhere, Category = "Effects");
 	FName TimeToHitParamName;
-
 
 public:
 	// Sets default values for this character's properties
@@ -61,25 +46,23 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void PostInitializeComponents() override;
+
+	virtual FVector GetPawnViewLocation() const override;
 	
 	void MoveForward(float X);
 
 	void MoveRight(float X);
+	
+	void SprintStart();
 
-	void SpawnProjectile(UClass* ProjectileClass);
+	void SprintStop();
 	
 	void PrimaryAttack();
-
-	void PrimaryAttack_TimeElapsed();
-
+	
 	void SecondaryAttack();
-
-	void SecondaryAttack_TimeElapsed();
-
-	void TeleportAbility();
-
-	void TeleportAbility_TimeElapsed();
-
+	
+	void DashAbility();
+	
 	void PrimaryInteract();
 
 	UFUNCTION()
@@ -93,8 +76,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	UCameraComponent* GetCameraComponent() const { return CameraComponent; }
-
-private:
-
-	void StartAttackEffects();
+	
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 100.f);
 };
+
+ 

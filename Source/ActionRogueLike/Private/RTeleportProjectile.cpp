@@ -10,11 +10,10 @@
 
 ARTeleportProjectile::ARTeleportProjectile()
 {
+	SphereComp->SetSphereRadius(36.f);
+	
 	MovementComp->InitialSpeed = 5000.0f;
-
-	SphereComp->OnComponentHit.AddDynamic(this, &ARTeleportProjectile::OnHit);
-	SphereComp->InitSphereRadius(36);
-
+	
 	TeleportDelay = 0.2f;
 	TeleportTime = 0.2f;
 }
@@ -44,8 +43,7 @@ void ARTeleportProjectile::Teleport_TimeElapsed()
 	Destroy();
 }
 
-void ARTeleportProjectile::OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor,
-	UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult)
+void ARTeleportProjectile::OnHit(UPrimitiveComponent* PrimitiveComponent, AActor* Actor, UPrimitiveComponent* PrimitiveComponent1, FVector Vector, const FHitResult& HitResult)
 {
 	Teleport();
 }
