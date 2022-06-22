@@ -33,17 +33,20 @@ public:
 	URInteractionComponent();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	
 	void PrimaryInteract();
 	
 protected:
-	
-	void FindBestInteractable();
 
 	UPROPERTY()
 	AActor* FocusedActor;
 
 	UPROPERTY()
 	URWorldUserWidget* DefaultWidget;
+	
+	void FindBestInteractable();
+
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor* InFocus);
 	
 };

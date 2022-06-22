@@ -10,15 +10,19 @@
 
 class URAbility;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAbilityStateChanged, URAbilityComponent*, OwningComp, URAbility*, Ability);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROGUELIKE_API URAbilityComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+
+	
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "Ability")
-	static URAbilityComponent* GetAbilityComponent(AActor* FromActor);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	FGameplayTagContainer ActiveGameplayTags;
 
 protected:
 
@@ -26,26 +30,36 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TSubclassOf<URAbility>> DefaultAbilities;
 
-public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-	FGameplayTagContainer ActiveGameplayTags;
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Actions")
+	TArray<URAbility*> Abilities;
 	
-public:	
-	// Sets default values for this component's properties
+public:
+	
 	URAbilityComponent();
-
 	
 protected:
-
-	UPROPERTY()
-	TArray<URAbility*> Abilities;
 	
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
+protected:
+	UFUNCTION(Server, Reliable)
+	void ServerStartAbility(AActor* Instigator, FName AbilityName);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopAbility(AActor* Instigator, FName AbilityName);
+	
+public:
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	static URAbilityComponent* GetAbilityComponent(AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	URAbility* GetAbility(TSubclassOf<URAbility> AbilityClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	void AddAbility(AActor* Instigator, TSubclassOf<URAbility> AbilityClass);
@@ -59,5 +73,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	bool StopAbilityByName(AActor* Instigator, FName AbilityName);
 
+	UPROPERTY(BlueprintAssignable, Category = "Abilities")
+	FOnAbilityStateChanged OnAbilityStarted;
+
+	UPROPERTY(BlueprintAssignable, Category = "Abilities")
+	FOnAbilityStateChanged OnAbilityStopped;
 	
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
 };

@@ -3,6 +3,8 @@
 
 #include "Actors/RPowerupBase.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 ARPowerupBase::ARPowerupBase()
 {
@@ -16,20 +18,53 @@ ARPowerupBase::ARPowerupBase()
 	Mesh->SetupAttachment(RootComponent);
 	
 	CooldownTime = 10.0f;
+
+	bIsActive = true;
+
+	bReplicates = true;
 }
 
-void ARPowerupBase::Enable()
+void ARPowerupBase::OnActorLoaded_Implementation()
+{}
+
+void ARPowerupBase::Interact_Implementation(APawn* InstigatorPawn)
+{}
+
+FText ARPowerupBase::GetInteractionText_Implementation(APawn* InstigatorPawn)
 {
-	RootComponent->SetVisibility(true, true);
-	SetActorEnableCollision(true);
+	return FText::GetEmpty();
 }
 
-void ARPowerupBase::Disable()
+void ARPowerupBase::ActivatePowerup()
 {
-	RootComponent->SetVisibility(false, true);
-	SetActorEnableCollision(false);
+	SetPowerupState(true);
+}
+
+void ARPowerupBase::HideAndCooldownPowerup()
+{
+	SetPowerupState(false);
 	
-	FTimerHandle TimerHandle_Activate;
-	GetWorldTimerManager().SetTimer(TimerHandle_Activate, this, &ARPowerupBase::Enable, CooldownTime);
+	GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ARPowerupBase::ActivatePowerup, CooldownTime);
 }
 
+void ARPowerupBase::SetPowerupState(bool bNewIsActive)
+{
+	bIsActive = bNewIsActive;
+	OnRep_Enabled();
+}
+
+
+
+void ARPowerupBase::OnRep_Enabled()
+{
+	// set collision and visibility
+	SetActorEnableCollision(bIsActive);
+	RootComponent->SetVisibility(bIsActive, true);
+}
+
+void ARPowerupBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ARPowerupBase, bIsActive);
+}

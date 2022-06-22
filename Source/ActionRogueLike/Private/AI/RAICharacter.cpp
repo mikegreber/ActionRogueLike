@@ -24,7 +24,6 @@ ARAICharacter::ARAICharacter()
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	TimeToHitParamName = "TimeToHit";
@@ -38,10 +37,19 @@ void ARAICharacter::PostInitializeComponents()
 	AttributeComp->OnHealthChanged.AddDynamic(this, &ARAICharacter::OnHealthChanged);
 }
 
+AActor* ARAICharacter::GetTargetActor() const
+{
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		return Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
+	}
+	
+	return nullptr;
+}
+
 void ARAICharacter::SetTargetActor(AActor* NewTarget)
 {
-	AAIController* AIController = Cast<AAIController>(GetController());
-	if (AIController)
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
 		AIController->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
 	}
@@ -49,7 +57,22 @@ void ARAICharacter::SetTargetActor(AActor* NewTarget)
 
 void ARAICharacter::OnSeePawn(APawn* Pawn)
 {
-	SetTargetActor(Pawn);
+	if (GetTargetActor() != Pawn)
+	{
+		SetTargetActor(Pawn);
+
+		MulticastOnSeePawn();
+	}
+}
+
+void ARAICharacter::MulticastOnSeePawn_Implementation()
+{
+	URWorldUserWidget* NewWidget = CreateWidget<URWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+	if (NewWidget)
+	{
+		NewWidget->AttachedActor = this;
+		NewWidget->AddToViewport(1);
+	}
 }
 
 void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponent* OwningComp, float NewHealth, float Delta)
@@ -70,7 +93,6 @@ void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponen
             	ActiveHealthBar->AddToViewport();
             }
 		}
-		
 		
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->GetTimeSeconds());
 

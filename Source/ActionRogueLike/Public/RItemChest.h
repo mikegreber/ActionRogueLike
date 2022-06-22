@@ -18,7 +18,8 @@ public:
 	float TargetPitch;
 	
 	virtual void Interact_Implementation(APawn* Instigator) override;
-	
+
+	virtual void OnActorLoaded_Implementation() override;
 protected:
 	
 	UPROPERTY(VisibleAnywhere)
@@ -26,9 +27,17 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* LidMesh;
+
+	UPROPERTY(ReplicatedUsing = OnRep_LidOpen, BlueprintReadOnly, SaveGame)
+	bool bLidOpen;
+
+	UFUNCTION()
+	void OnRep_LidOpen();
 	
 public:	
 	// Sets default values for this actor's properties
 	ARItemChest();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };

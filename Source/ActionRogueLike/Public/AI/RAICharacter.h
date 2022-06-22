@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+    TSubclassOf<URWorldUserWidget> SpottedWidgetClass;
+    	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UPawnSensingComponent* PawnSensingComp;
 	
@@ -40,6 +43,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
 
+
+
 public:
 	// Sets default values for this character's properties
 	ARAICharacter();
@@ -48,10 +53,15 @@ protected:
 	
 	virtual void PostInitializeComponents() override;
 
+	AActor* GetTargetActor() const;
+	
 	void SetTargetActor(AActor* NewTarget);
 	
 	UFUNCTION()
 	void OnSeePawn(APawn* Pawn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastOnSeePawn();
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, URAttributeComponent* OwningComp, float NewValue, float Delta);

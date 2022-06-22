@@ -25,4 +25,6 @@ public:
 	ARPowerup_Health();
 	
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	virtual FText GetInteractionText_Implementation(APawn* InstigatorPawn) override;
 };

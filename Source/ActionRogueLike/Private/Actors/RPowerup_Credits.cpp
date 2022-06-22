@@ -2,8 +2,6 @@
 
 
 #include "Actors/RPowerup_Credits.h"
-
-#include "RAttributeComponent.h"
 #include "RPlayerState.h"
 
 ARPowerup_Credits::ARPowerup_Credits()
@@ -22,6 +20,6 @@ void ARPowerup_Credits::Interact_Implementation(APawn* InstigatorPawn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ADDING CREDITS"))
 		PS->AddCredits(CreditAmount);
-		Disable();
+		HideAndCooldownPowerup();
 	}
 }

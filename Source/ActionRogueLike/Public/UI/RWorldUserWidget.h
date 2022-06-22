@@ -20,8 +20,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	USizeBox* ParentSizeBox;
-
-	
 	
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
@@ -30,6 +28,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	FVector WorldOffset;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	UPROPERTY(BlueprintReadWrite, Category = "UI", meta = (ExposeOnSpawn=true))
 	AActor* AttachedActor;
 };

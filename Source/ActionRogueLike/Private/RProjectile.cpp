@@ -34,6 +34,8 @@ ARProjectile::ARProjectile()
 
 	ImpactShakeInnerRadius = 0.0f;
 	ImpactShakeOuterRadius = 1500.f;
+
+	// SetReplicates(true);
 }
 
 // Called when the game starts or when spawned

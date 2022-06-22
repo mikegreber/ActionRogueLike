@@ -30,6 +30,9 @@ public:
 	
 	virtual void StopAbility_Implementation(AActor* Instigator) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	float GetTimeRemaining() const;
+
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Effect")
 	void ExecutePeriodicEffect(AActor* InstigatorActor);

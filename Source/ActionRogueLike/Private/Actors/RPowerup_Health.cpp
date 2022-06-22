@@ -6,6 +6,8 @@
 #include "RAttributeComponent.h"
 #include "RPlayerState.h"
 
+#define LOCTEXT_NAMESPACE "InteractableActors"
+
 ARPowerup_Health::ARPowerup_Health()
 {
 	HealAmount = 50.f;
@@ -14,25 +16,32 @@ ARPowerup_Health::ARPowerup_Health()
 
 void ARPowerup_Health::Interact_Implementation(APawn* InstigatorPawn)
 {
-	UE_LOG(LogTemp, Log, TEXT("INTERACT"))
 	if (URAttributeComponent* AttributeComp = URAttributeComponent::GetAttributes(InstigatorPawn))
 	{
-		UE_LOG(LogTemp, Log, TEXT("HAS ATTRIBUTES"))
 		if (ARPlayerState* PS = InstigatorPawn->GetPlayerState<ARPlayerState>())
 		{
-			UE_LOG(LogTemp, Log, TEXT("HAS PLAYERSTATE"))
 			if (PS->GetCredits() >= CreditCost)
 			{
-				UE_LOG(LogTemp, Log, TEXT("INSUFICCIENT CREDITS"))
-
 				if (AttributeComp->ApplyHealthChange(this, HealAmount))
 				{
-					UE_LOG(LogTemp, Log, TEXT("HEALTH GRANTED"))
-					
 					PS->RemoveCredits(CreditCost);
-					Disable();
+					HideAndCooldownPowerup();
 				}
 			}
 		}
 	}
 }
+
+FText ARPowerup_Health::GetInteractionText_Implementation(APawn* InstigatorPawn)
+{
+	URAttributeComponent* AttributeComp = URAttributeComponent::GetAttributes(InstigatorPawn);
+	if (AttributeComp && AttributeComp->IsFullHealth())
+	{
+		return LOCTEXT("HealthPotion_FullHealthWarning", "Already at full health.");
+	}
+	
+	return FText::Format(LOCTEXT("HealthPotion_InteractMessage", "Cost {0} Credits. Restores health to maximum."), CreditCost);
+}
+
+
+#undef LOCTEXT_NAMESPACE

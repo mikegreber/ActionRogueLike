@@ -3,6 +3,8 @@
 
 #include "RItemChest.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
 ARItemChest::ARItemChest()
@@ -17,10 +19,30 @@ ARItemChest::ARItemChest()
 	LidMesh->SetupAttachment(RootComponent);
 
 	TargetPitch = 110;
+
+	bReplicates = true;
 }
+
 
 void ARItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
-	LidMesh->SetRelativeRotation(FRotator(TargetPitch,0,0));
+	bLidOpen = !bLidOpen;
+	OnRep_LidOpen();
 }
 
+void ARItemChest::OnActorLoaded_Implementation()
+{
+	OnRep_LidOpen();
+}
+
+void ARItemChest::OnRep_LidOpen()
+{
+	LidMesh->SetRelativeRotation(FRotator(bLidOpen ? TargetPitch : 0.0f,0.0f,0.0f));
+}
+
+void ARItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ARItemChest, bLidOpen);
+}

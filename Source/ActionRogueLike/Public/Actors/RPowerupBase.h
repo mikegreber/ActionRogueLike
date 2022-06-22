@@ -15,22 +15,39 @@ class ACTIONROGUELIKE_API ARPowerupBase : public AActor, public IRGameplayInterf
 
 protected:
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComp;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Powerup")
 	float CooldownTime;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Enabled)
+	bool bIsActive;
+
+	UFUNCTION()
+	void OnRep_Enabled();
 	
+	FTimerHandle TimerHandle_RespawnTimer;
+
 public:	
 	// Sets default values for this actor's properties
 	ARPowerupBase();
 
+	virtual void OnActorLoaded_Implementation() override;
+
+	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	virtual FText GetInteractionText_Implementation(APawn* InstigatorPawn) override;
+	
 protected:
 
-	void Enable();
+	void ActivatePowerup();
 
-	void Disable();
+	void HideAndCooldownPowerup();
+
+	void SetPowerupState(bool bNewIsActive);
+
 };

@@ -23,7 +23,9 @@ ARMagicProjectile::ARMagicProjectile()
 
 	DamageAmount = 30.0f;
 
-	
+	InitialLifeSpan = 5.0f;
+
+	bReplicates = true;
 }
 
 void ARMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -44,7 +46,7 @@ void ARMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		
 		if (URGameplayFunctionLibrary::ApplyDamageDirectional(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 		{
-			if (AbilityComp)
+			if (AbilityComp && HasAuthority())
 			{
 				AbilityComp->AddAbility(GetInstigator(), BurningEffectClass);
 			}

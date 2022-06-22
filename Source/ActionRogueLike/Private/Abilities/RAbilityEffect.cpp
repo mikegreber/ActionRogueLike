@@ -4,6 +4,7 @@
 #include "Abilities/RAbilityEffect.h"
 
 #include "Abilities/RAbilityComponent.h"
+#include "GameFramework/GameStateBase.h"
 
 
 URAbilityEffect::URAbilityEffect()
@@ -50,6 +51,17 @@ void URAbilityEffect::StopAbility_Implementation(AActor* Instigator)
 	}
 }
 
+float URAbilityEffect::GetTimeRemaining() const
+{
+	if (AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>())
+	{
+		return TimeStarted + Duration - GS->GetServerWorldTimeSeconds();
+	}
+	
+	return Duration;
+}
+
 void URAbilityEffect::ExecutePeriodicEffect_Implementation(AActor* Instigator)
 {
+	UE_LOG(LogTemp, Log, TEXT("EXECUTE"));
 }
