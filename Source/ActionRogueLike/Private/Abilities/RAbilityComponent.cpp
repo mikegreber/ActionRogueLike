@@ -8,6 +8,7 @@
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
+static TAutoConsoleVariable CVarDebugAbilities(TEXT("ARL.DebugAbilities"), false, TEXT("Show ability debug info"), ECVF_Cheat);
 
 DECLARE_CYCLE_STAT(TEXT("StartAbilityByName"), STAT_StartAbilityByName, STATGROUP_ROGUELIKE);
 
@@ -46,21 +47,20 @@ void URAbilityComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void URAbilityComponent::ServerStopAbility_Implementation(AActor* Instigator, FName AbilityName)
-{
-	StopAbilityByName(Instigator, AbilityName);
-}
 
 void URAbilityComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
-	for (URAbility* Ability : Abilities)
+
+	if (CVarDebugAbilities.GetValueOnGameThread())
 	{
-		FColor TextColor = Ability->IsRunning() ? FColor::Blue : FColor::White;
-		FString AbilityMsg = FString::Printf(TEXT("[%s] Ability: %s"), *GetNameSafe(GetOuter()), *GetNameSafe(Ability));
+		for (URAbility* Ability : Abilities)
+		{
+			FColor TextColor = Ability->IsRunning() ? FColor::Blue : FColor::White;
+			FString AbilityMsg = FString::Printf(TEXT("[%s] Ability: %s"), *GetNameSafe(GetOuter()), *GetNameSafe(Ability));
 		
-		LogOnScreen(this, AbilityMsg, TextColor, 0.0f);
+			LogOnScreen(this, AbilityMsg, TextColor, 0.0f);
+		}
 	}
 }
 
@@ -128,7 +128,37 @@ bool URAbilityComponent::StartAbilityByName(AActor* Instigator, FName AbilityNam
 			// call client only
 			if (!GetOwner()->HasAuthority())
 			{
-				ServerStartAbility(Instigator, AbilityName);
+				ServerStartAbilityByName(Instigator, AbilityName);
+			}
+
+			// Bookmark for Unreal Insights
+			TRACE_BOOKMARK(TEXT("StartAbility::%s"), *GetNameSafe(Ability));
+
+			Ability->StartAbility(Instigator);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool URAbilityComponent::StartAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag)
+{
+	for (URAbility* Ability : Abilities)
+	{
+		if (Ability->AbilityTag == AbilityTag)
+		{
+			if (!Ability->CanStart(Instigator))
+			{
+				FString FailedMsg = FString::Printf(TEXT("Failed to run: %s"), *AbilityTag.ToString());
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FailedMsg);
+				continue;
+			}
+
+			// call client only
+			if (!GetOwner()->HasAuthority())
+			{
+				ServerStartAbilityByTag(Instigator, AbilityTag);
 			}
 
 			// Bookmark for Unreal Insights
@@ -153,7 +183,7 @@ bool URAbilityComponent::StopAbilityByName(AActor* Instigator, FName AbilityName
 				// call client only
 				if (!GetOwner()->HasAuthority())
 				{
-					ServerStopAbility(Instigator, AbilityName);
+					ServerStopAbilityByName(Instigator, AbilityName);
 				}
 				
 				Ability->StopAbility(Instigator);
@@ -165,14 +195,52 @@ bool URAbilityComponent::StopAbilityByName(AActor* Instigator, FName AbilityName
 	return false;
 }
 
+bool URAbilityComponent::StopAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag)
+{
+	for (URAbility* Ability : Abilities)
+	{
+		if (Ability && Ability->AbilityTag == AbilityTag)
+		{
+			if (Ability->IsRunning())
+			{
+				// call client only
+				if (!GetOwner()->HasAuthority())
+				{
+					ServerStopAbilityByTag(Instigator, AbilityTag);
+				}
+				
+				Ability->StopAbility(Instigator);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void URAbilityComponent::ServerStopAbilityByName_Implementation(AActor* Instigator, FName AbilityName)
+{
+	StopAbilityByName(Instigator, AbilityName);
+}
+
+void URAbilityComponent::ServerStopAbilityByTag_Implementation(AActor* Instigator, FGameplayTag AbilityTag)
+{
+	StopAbilityByTag(Instigator, AbilityTag);
+}
+
 URAbilityComponent* URAbilityComponent::GetAbilityComponent(AActor* FromActor)
 {
 	return Cast<URAbilityComponent>(FromActor->GetComponentByClass(StaticClass()));
 }
 
-void URAbilityComponent::ServerStartAbility_Implementation(AActor* Instigator, FName AbilityName)
+void URAbilityComponent::ServerStartAbilityByName_Implementation(AActor* Instigator, FName AbilityName)
 {
 	StartAbilityByName(Instigator, AbilityName);
+}
+
+void URAbilityComponent::ServerStartAbilityByTag_Implementation(AActor* Instigator, FGameplayTag AbilityTag)
+{
+	StartAbilityByTag(Instigator, AbilityTag);
 }
 
 

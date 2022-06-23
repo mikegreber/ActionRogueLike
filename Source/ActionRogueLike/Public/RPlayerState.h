@@ -10,7 +10,7 @@
 
 class ARPlayerState;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCreditsChanged, ARPlayerState*, PlayerState, int32, NewCredits);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCreditsChanged, ARPlayerState*, PlayerState, int32, NewCredits, int32, Delta);
 
 /**
  * 
@@ -24,6 +24,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing=OnRep_Credits, Category = "Credits")
 	int32 Credits;
+
+	UPROPERTY(BlueprintReadOnly)
+	float PersonalRecordTime;
 
 	UFUNCTION()
 	void OnRep_Credits(int32 OldCredits);

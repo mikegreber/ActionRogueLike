@@ -60,6 +60,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	FName AbilityName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	FGameplayTag AbilityTag;
 	
 	/* Start immediately when added to an ability component */
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

@@ -43,6 +43,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
 
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToDissolveParamName;
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName AliveParamName;
 
 
 public:

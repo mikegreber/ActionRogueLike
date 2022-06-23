@@ -7,9 +7,6 @@
 
 static TAutoConsoleVariable CVarDamageMultiplier(TEXT("ARL..DamageMultiplier"), 1.0f, TEXT("Global Damage Modifier for Attribute Component"), ECVF_Cheat);
 
-
-
-
 // Sets default values for this component's properties
 URAttributeComponent::URAttributeComponent()
 {

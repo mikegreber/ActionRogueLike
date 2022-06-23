@@ -27,6 +27,8 @@ ARAICharacter::ARAICharacter()
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	TimeToHitParamName = "TimeToHit";
+	TimeToDissolveParamName = "TimeToDissolve";
+	AliveParamName = "Alive";
 }
 
 void ARAICharacter::PostInitializeComponents()
@@ -95,6 +97,7 @@ void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponen
 		}
 		
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->GetTimeSeconds());
+		
 
 		if (NewHealth <= 0.0f)
 		{
@@ -108,10 +111,14 @@ void ARAICharacter::OnHealthChanged(AActor* InstigatorActor, URAttributeComponen
 			// rag doll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll");
+
+			// start dissolve effect
+			GetMesh()->SetScalarParameterValueOnMaterials(TimeToDissolveParamName, GetWorld()->GetTimeSeconds());
+			GetMesh()->SetScalarParameterValueOnMaterials(AliveParamName, 0.0f);
 			
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			GetCharacterMovement()->DisableMovement();
-
+			
 			SetLifeSpan(10.0f);
 		}
 	}

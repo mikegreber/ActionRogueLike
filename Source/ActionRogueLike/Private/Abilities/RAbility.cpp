@@ -5,7 +5,6 @@
 
 #include "RAttributeComponent.h"
 #include "Abilities/RAbilityComponent.h"
-#include "ActionRogueLike/ActionRogueLike.h"
 #include "Net/UnrealNetwork.h"
 
 void URAbility::Initialize(URAbilityComponent* NewAbilityComp)
@@ -26,7 +25,6 @@ bool URAbility::CanStart_Implementation(AActor* Instigator)
 void URAbility::StartAbility_Implementation(AActor* Instigator)
 {
 	UE_LOG(LogTemp, Log, TEXT("Start Ability: %s"), *GetNameSafe(this));
-	// LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *AbilityName.ToString()), FColor::Green);
 
 	URAbilityComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.AppendTags(GrantsTags);
@@ -46,7 +44,6 @@ void URAbility::StartAbility_Implementation(AActor* Instigator)
 void URAbility::StopAbility_Implementation(AActor* Instigator)
 {
 	UE_LOG(LogTemp, Log, TEXT("Stop Ability: %s"), *GetNameSafe(this));
-	// LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *AbilityName.ToString()), FColor::White);
 	
 	URAbilityComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.RemoveTags(GrantsTags);

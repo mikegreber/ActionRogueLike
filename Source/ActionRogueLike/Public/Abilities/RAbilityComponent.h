@@ -44,15 +44,6 @@ protected:
 public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
-protected:
-	UFUNCTION(Server, Reliable)
-	void ServerStartAbility(AActor* Instigator, FName AbilityName);
-
-	UFUNCTION(Server, Reliable)
-	void ServerStopAbility(AActor* Instigator, FName AbilityName);
-	
-public:
-
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Ability")
@@ -71,14 +62,34 @@ public:
 	bool StartAbilityByName(AActor* Instigator, FName AbilityName);
 
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool StartAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	bool StopAbilityByName(AActor* Instigator, FName AbilityName);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool StopAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag);
 
 	UPROPERTY(BlueprintAssignable, Category = "Abilities")
 	FOnAbilityStateChanged OnAbilityStarted;
 
 	UPROPERTY(BlueprintAssignable, Category = "Abilities")
 	FOnAbilityStateChanged OnAbilityStopped;
-	
+
+protected:
+	UFUNCTION(Server, Reliable)
+	void ServerStartAbilityByName(AActor* Instigator, FName AbilityName);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopAbilityByName(AActor* Instigator, FName AbilityName);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopAbilityByTag(AActor* Instigator, FGameplayTag AbilityTag);
+
+public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 };

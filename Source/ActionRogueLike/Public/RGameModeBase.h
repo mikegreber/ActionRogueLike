@@ -47,11 +47,11 @@ class ACTIONROGUELIKE_API ARGameModeBase : public AGameModeBase
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category = "SaveGame")
-	FString SlotName;
-
-	UPROPERTY()
-	URSaveGame* CurrentSaveGame;
+	// UPROPERTY(EditAnywhere, Category = "SaveGame")
+	// FString SlotName;
+	//
+	// UPROPERTY()
+	// URSaveGame* CurrentSaveGame;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UDataTable* EnemyTable;
@@ -115,10 +115,4 @@ public:
 
 	UFUNCTION(Exec)
 	void KillAll();
-
-	UFUNCTION(BlueprintCallable, Category = "SaveGame")
-	void WriteSaveGame();
-
-	void LoadSaveGame();
-	
 };

@@ -2,8 +2,6 @@
 
 
 #include "RPlayerState.h"
-
-#include "ActionRogueLike/ActionRogueLike.h"
 #include "Net/UnrealNetwork.h"
 
 int32 ARPlayerState::GetCredits() const
@@ -49,8 +47,19 @@ void ARPlayerState::SavePlayerState_Implementation(URSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		UE_LOG(LogTemp, Log, TEXT("SavePlayerState"))
-		SaveObject->Credits = Credits;
+		FPlayerSaveData SaveData;
+		SaveData.Credits = Credits;
+		SaveData.PersonalRecordTime = PersonalRecordTime;
+		SaveData.PlayerID = GetUniqueId().ToString();
+
+		if (APawn* MyPawn = GetPawn())
+		{
+			SaveData.Location = MyPawn->GetActorLocation();
+			SaveData.Rotation = MyPawn->GetActorRotation();
+			SaveData.bResumeAtTransform = true;
+		}
+
+		SaveObject->SavedPlayers.Add(SaveData);
 	}
 }
 
@@ -58,8 +67,12 @@ void ARPlayerState::LoadPlayerState_Implementation(URSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		UE_LOG(LogTemp, Log, TEXT("LoadPlayerState"))
-		AddCredits(SaveObject->Credits);
+		if (FPlayerSaveData* SaveData = SaveObject->GetPlayerData(this))
+		{
+			AddCredits(SaveData->Credits);
+
+			PersonalRecordTime = SaveData->PersonalRecordTime;
+		}
 	}
 	else
 	{
@@ -69,8 +82,7 @@ void ARPlayerState::LoadPlayerState_Implementation(URSaveGame* SaveObject)
 
 void ARPlayerState::OnRep_Credits(int32 OldCredits)
 {
-	LogOnScreen(this, TEXT("OnRep_Credits"), FColor::Blue, 5.0f);
-	OnCreditsChanged.Broadcast(this, Credits);
+	OnCreditsChanged.Broadcast(this, Credits, Credits - OldCredits);
 }
 
 void ARPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
