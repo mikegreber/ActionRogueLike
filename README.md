@@ -13,7 +13,6 @@ Project for the **[Professional Game Development in C++ and Unreal Engine](https
 - AttributeComponent (Holding health etc.)
 - **SaveGame System** for persisting progress of character and world state.
 - Heavy use of Events to drive UI and gameplay reactions.
-- Mix of C++ & Blueprint and how to combine these effectively.
 - **GameplayTags** to mark-up Actors, Buffs, Actions.
 - **Multiplayer support** for all features
 - GameMode Logic
