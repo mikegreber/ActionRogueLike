@@ -27,8 +27,10 @@ Project for the **[Professional Game Development in C++ and Unreal Engine](https
   - Minion AI with Behavior Trees (Roam, See, Chase, Attack, Flee/Heal)
   - C++ Custom Behavior Trees Nodes
   - EQS for attack/cover locations by AI
+  
 Powerups
 - Powerup pickups to heal, gain credits/actions.
+
 UMG
 - Main menu to host/join game
 - UI elements for player attributes and projected widgets for powerups and enemy health.
